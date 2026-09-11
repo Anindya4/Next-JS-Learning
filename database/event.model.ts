@@ -111,7 +111,7 @@ const EventSchema = new Schema<IEvent>(
 
 // Pre-save hook for slug generation and data normalization
 EventSchema.pre("save", function () {
-  const event = this;
+  const event = this as IEvent;
 
   // Generate slug only if title changed or document is new
   if (event.isModified("title") || event.isNew) {
