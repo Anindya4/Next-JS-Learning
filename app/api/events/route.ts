@@ -6,17 +6,7 @@ export async function POST(req: NextRequest) {
   try {
     await connectDB(); //connect with mongodb (s-1)
 
-    const formdata = await req.formData(); // fetching details
-
-    let event;
-    try {
-      event = Object.fromEntries(formdata.entries());
-    } catch (e) {
-      return NextResponse.json(
-        { message: "Unknow JSON format data" },
-        { status: 400 },
-      );
-    }
+    const event = await req.json(); // fetching details
 
     const createEvent = await Event.create(event);
 
@@ -34,6 +24,24 @@ export async function POST(req: NextRequest) {
         message: "Event creation failed",
         error: e instanceof Error ? e.message : "Unkown",
       },
+      { status: 500 },
+    );
+  }
+}
+
+export async function GET() {
+  try {
+    await connectDB();
+
+    const events = await Event.find().sort({ createdAt: -1 });
+
+    return NextResponse.json(
+      { message: "Events fetched successfully", events },
+      { status: 200 },
+    );
+  } catch (e) {
+    return NextResponse.json(
+      { message: "Event Fetching Failed", error: e },
       { status: 500 },
     );
   }
