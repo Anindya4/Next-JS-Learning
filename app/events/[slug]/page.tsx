@@ -1,9 +1,11 @@
-import { notFound } from "next/navigation"
+import { notFound } from "next/navigation";
 import Image from "next/image";
 import BookEvent from "@/components/BookEvent";
+import { IEvent } from "@/database";
+import { getSimilarEventsBySlug } from "@/lib/actions/events.actions";
+import EventCard from "@/components/EventCard";
 
-
-const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL
+const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL;
 
 const EventDetailItem = ({
   icon,
@@ -41,12 +43,17 @@ const EventTags = ({ tags }: { tags: string[] }) => (
   </div>
 );
 
-export default async function EventPageDetails({params} : {params: Promise<{slug: string}>}) {
-    const { slug } = await params
-    const req = await fetch(`${BASE_URL}/api/events/${slug}`)
-    const {event} = await req.json()
-    if (!event) return notFound()
-    const booking = 10;
+export default async function EventPageDetails({
+  params,
+}: {
+  params: Promise<{ slug: string }>;
+}) {
+  const { slug } = await params;
+  const req = await fetch(`${BASE_URL}/api/events/${slug}`);
+  const { event } = await req.json();
+  if (!event) return notFound();
+  const booking = 10;
+  const getSimilarEvent: IEvent[] = await getSimilarEventsBySlug(slug);
   return (
     <section id="event">
       <div className="header">
@@ -113,11 +120,19 @@ export default async function EventPageDetails({params} : {params: Promise<{slug
             ) : (
               <p className="text-sm">Be the First one to book!!</p>
             )}
-            <BookEvent />
+            <BookEvent slug={event.slug} eventId={event._id} />
           </div>
         </aside>
+      </div>
+      <div className="flex w-full flex-col gap-4 pt-20">
+        <h2>Similar Events</h2>
+        <div className="events">
+          {getSimilarEvent.length > 0 &&
+            getSimilarEvent.map((similarEvent) => (
+              <EventCard key={similarEvent.title} {...similarEvent} />
+            ))}
+        </div>
       </div>
     </section>
   );
 }
-
